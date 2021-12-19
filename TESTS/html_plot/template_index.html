@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>{{ R[Title] }}</title>
+  <link rel="stylesheet" href="./style.css">
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<div class="chart-wrap">
+{{ R[Plot] => template_plot.html }}
+</div>
+<!-- partial -->
+  <h2 class="title"> {{ # R[Index_Description] }}</h2>
+</body>
+</html>

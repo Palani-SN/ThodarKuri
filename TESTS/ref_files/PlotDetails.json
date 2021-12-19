@@ -1,0 +1,152 @@
+[
+    {
+        "description": "African Caribbean in Barbados",
+        "name": "1000GENOMES:phase_3:ACB",
+        "size": 96
+    },
+    {
+        "description": "African Ancestry in Southwest US",
+        "name": "1000GENOMES:phase_3:ASW",
+        "size": 61
+    },
+    {
+        "description": "Bengali in Bangladesh",
+        "name": "1000GENOMES:phase_3:BEB",
+        "size": 86
+    },
+    {
+        "description": "Chinese Dai in Xishuangbanna, China",
+        "name": "1000GENOMES:phase_3:CDX",
+        "size": 93
+    },
+    {
+        "description": "Utah residents with Northern and Western European ancestry",
+        "name": "1000GENOMES:phase_3:CEU",
+        "size": 99
+    },
+    {
+        "description": "Han Chinese in Bejing, China",
+        "name": "1000GENOMES:phase_3:CHB",
+        "size": 103
+    },
+    {
+        "description": "Southern Han Chinese, China",
+        "name": "1000GENOMES:phase_3:CHS",
+        "size": 105
+    },
+    {
+        "description": "Colombian in Medellin, Colombia",
+        "name": "1000GENOMES:phase_3:CLM",
+        "size": 94
+    },
+    {
+        "description": "Esan in Nigeria",
+        "name": "1000GENOMES:phase_3:ESN",
+        "size": 99
+    },
+    {
+        "description": "Finnish in Finland",
+        "name": "1000GENOMES:phase_3:FIN",
+        "size": 99
+    },
+    {
+        "description": "British in England and Scotland",
+        "name": "1000GENOMES:phase_3:GBR",
+        "size": 91
+    },
+    {
+        "description": "Gujarati Indian in Houston, TX",
+        "name": "1000GENOMES:phase_3:GIH",
+        "size": 103
+    },
+    {
+        "description": "Gambian in Western Division, The Gambia",
+        "name": "1000GENOMES:phase_3:GWD",
+        "size": 113
+    },
+    {
+        "description": "Iberian populations in Spain",
+        "name": "1000GENOMES:phase_3:IBS",
+        "size": 107
+    },
+    {
+        "description": "Indian Telugu in the UK",
+        "name": "1000GENOMES:phase_3:ITU",
+        "size": 102
+    },
+    {
+        "description": "Japanese in Tokyo, Japan",
+        "name": "1000GENOMES:phase_3:JPT",
+        "size": 104
+    },
+    {
+        "description": "Kinh in Ho Chi Minh City, Vietnam",
+        "name": "1000GENOMES:phase_3:KHV",
+        "size": 99
+    },
+    {
+        "description": "Luhya in Webuye, Kenya",
+        "name": "1000GENOMES:phase_3:LWK",
+        "size": 99
+    },
+    {
+        "description": "Mende in Sierra Leone",
+        "name": "1000GENOMES:phase_3:MSL",
+        "size": 85
+    },
+    {
+        "description": "Mexican Ancestry in Los Angeles, California",
+        "name": "1000GENOMES:phase_3:MXL",
+        "size": 64
+    },
+    {
+        "description": "Peruvian in Lima, Peru",
+        "name": "1000GENOMES:phase_3:PEL",
+        "size": 85
+    },
+    {
+        "description": "Punjabi in Lahore, Pakistan",
+        "name": "1000GENOMES:phase_3:PJL",
+        "size": 96
+    },
+    {
+        "description": "Puerto Rican in Puerto Rico",
+        "name": "1000GENOMES:phase_3:PUR",
+        "size": 104
+    },
+    {
+        "description": "Sri Lankan Tamil in the UK",
+        "name": "1000GENOMES:phase_3:STU",
+        "size": 102
+    },
+    {
+        "description": "Toscani in Italy",
+        "name": "1000GENOMES:phase_3:TSI",
+        "size": 107
+    },
+    {
+        "description": "Yoruba in Ibadan, Nigeria",
+        "name": "1000GENOMES:phase_3:YRI",
+        "size": 108
+    },
+    {
+        "description": "Population from the Gambian Genome Variation Project. Gambian in Western Division, The Gambia - Fula",
+        "name": "GGVP:GWF",
+        "size": 100
+    },
+    {
+        "description": "Population from the Gambian Genome Variation Project. Gambian in Western Division, The Gambia - Mandinka.",
+        "name": "GGVP:GWD",
+        "size": 280
+    },
+    {
+        "description": "Population from the Gambian Genome Variation Project. Gambian in Western Division, The Gambia - Wolof.",
+        "name": "GGVP:GWW",
+        "size": 100
+    },
+    {
+        "description": "Population from the Gambian Genome Variation Project. Gambian in Western Division, The Gambia - Jola.",
+        "name": "GGVP:GWJ",
+        "size": 100
+    }
+]
