@@ -5,29 +5,23 @@
 
 ## Template commands to be used (only 3 statements)
 
-- Command 1 :
- 
+- Command 1 : adds the key *Title* to the current dict with value *None*
+
 ```
 R[Title] 
 ```
-
-- adds the key *Title* to the current dict with value *None*
 	
-- Command 2 : 
+- Command 2 : adds the key *Plot* to the current dict with value **as dict** of file *template_plot.html*
 
 ```
 R[Plot] => template_plot.html
 ``` 
 
-- adds the key *Plot* to the current dict with value **as dict** of file *template_plot.html*
-	
-- Command 3 : 
+- Command 3 : adds the key *Bar* to the current dict with value **as list of dict** of file *template_bar.html*
 
 ```
 ( R[Bar] => template_bar.html )*
 ``` 
-
-- adds the key *Bar* to the current dict with value **as list of dict** of file *template_bar.html*
 
 ## Parser
 
@@ -44,6 +38,7 @@ Settings = Parser.ParseEntryPoint("html_plot - SR1/template_index.html");
 print(json.dumps(Settings, sort_keys=True, indent=4));
 ```
 - **Note : Template files to be placed in the same folder path for use**
+
 ![](https://github.com/Palani-SN/ThodarKuri/blob/main/TemplatesSpecification.PNG?raw=true)
 
 ```output
@@ -210,6 +205,7 @@ FilledString = Filler.FillEntryPoint(Settings, "html_plot - SR1/template_index.h
 ```
 
 - The Output of the above code looks as follows
+
 ![](https://github.com/Palani-SN/ThodarKuri/blob/main/FilledFile.PNG?raw=true)
 
 ### FillerTemplateEngine (class from Filler.py)
