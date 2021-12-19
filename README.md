@@ -252,4 +252,4 @@ def FillEntryPoint(self, MapDict, TemplateName, FileName = None, DebugTokens = F
   - Arg3 - FileName (New file name which needs to be created with the filled content)
   - Arg4 - DebugTokens (If True prints the return str, If false doesnt print)
 - Returns 
-  - Str - the result as a dictionary filled with the template string as string(keys and default values like a schema: Return_values)
+  - Str - string created by dictionary values recursively filled in the template string
