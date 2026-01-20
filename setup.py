@@ -4,8 +4,8 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name="ThodarKuri",
-    version="1.0.0",
+    name="thodarkuri",
+    version="1.0.1",
     description="Generic Recursive Template Engine for Parsing and Filling",
     py_modules=["ThodarKuri/Filler", "ThodarKuri/Parser"],
     package_dir={"": "SRCS"},
