@@ -29,7 +29,7 @@ TK_Grammer = """
         VAR: /[a-zA-Z_][a-zA-Z0-9_]*/
         filepath: (PATH_PART SEPERATOR)* PATH_PART DOT EXTENSION
 
-        PATH_PART: /[a-zA-Z0-9_-]*/
+        PATH_PART: /[a-zA-Z0-9_-]+/
         SEPERATOR: /[\\/\\\\]/
         DOT: "."
         EXTENSION: /[a-zA-Z0-9]+/

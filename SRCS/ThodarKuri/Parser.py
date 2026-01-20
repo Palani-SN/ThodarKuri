@@ -48,8 +48,7 @@ class ParserTemplateEngine():
                 RelPath = os.path.join(RootPath, y)
                 TemplateName = os.path.abspath(RelPath);
                 FolderPath = os.path.dirname(TemplateName);
-                if RootPath == FolderPath:
-                    self.template_lookups[RootPath].add(TemplateName)
+                # Do not mark the template here; __ParseContent will manage the recursion guard
                 MapDict[x]=[self.__ParseContent(FolderPath ,TemplateName)];
                     
         # processing node catogorised as type dict 
@@ -61,8 +60,7 @@ class ParserTemplateEngine():
                     RelPath = os.path.join(RootPath, y)
                     TemplateName = os.path.abspath(RelPath);
                     FolderPath = os.path.dirname(TemplateName);
-                    if RootPath == FolderPath:
-                        self.template_lookups[RootPath].add(TemplateName)
+                    # Do not mark the template here; __ParseContent will manage the recursion guard
                     MapDict[x]=self.__ParseContent(FolderPath ,TemplateName);
                     
         return MapDict;
@@ -77,26 +75,37 @@ class ParserTemplateEngine():
         
         if not os.path.commonpath([FolderPath, TemplateName]) == FolderPath:
             raise Exception(f"{TemplateName} should always be within {FolderPath}")
-        elif FolderPath == os.path.dirname(TemplateName):
-            if FolderPath not in self.template_lookups.keys():
-                self.template_lookups[FolderPath] = {}
-            elif FolderPath in self.template_lookups.keys() and TemplateName in self.template_lookups[FolderPath]:
-                raise Exception(f"Circular invocation {self.template_lookups[FolderPath]} Not Supported for {TemplateName} within {FolderPath}")
 
-        # reading content from filename
-        template = open(os.path.join(FolderPath, TemplateName), 'r');
-        self.__content = template.read();
-        template.close();
+        # ensure folder entry exists
+        if FolderPath not in self.template_lookups:
+            self.template_lookups[FolderPath] = set()
 
-        # generating MapDict with respect to all nodes present in the content 
-        MapDict = {};
-        func_calls = [self.__content[m.start(0):m.end(0)] for m in re.finditer(self.__pattern, self.__content)];
-        for x in func_calls:
-            InpNode = x[self.__LeadTrailSpecs[0][1]:self.__LeadTrailSpecs[1][1]].strip();
-            if(not(InpNode.startswith('#'))):
-                MapDict = self.__ParseNode(FolderPath, MapDict, InpNode);
-            
-        return MapDict;
+        # if already visiting this template, return empty map to avoid infinite recursion
+        if TemplateName in self.template_lookups[FolderPath]:
+            return {}
+
+        # mark as visiting
+        self.template_lookups[FolderPath].add(TemplateName)
+        try:
+            # reading content from filename
+            template = open(TemplateName, 'r');
+            self.__content = template.read();
+            template.close();
+
+            # generating MapDict with respect to all nodes present in the content 
+            MapDict = {};
+            func_calls = [self.__content[m.start(0):m.end(0)] for m in re.finditer(self.__pattern, self.__content)];
+            for x in func_calls:
+                InpNode = x[self.__LeadTrailSpecs[0][1]:self.__LeadTrailSpecs[1][1]].strip();
+                if(not(InpNode.startswith('#'))):
+                    MapDict = self.__ParseNode(FolderPath, MapDict, InpNode);
+                
+            return MapDict;
+        finally:
+            # unmark visiting
+            self.template_lookups[FolderPath].remove(TemplateName)
+            if not self.template_lookups[FolderPath]:
+                del self.template_lookups[FolderPath]
 
     # method : ParseEntryPoint
     # Gets the template path to be edited.
@@ -111,16 +120,16 @@ class ParserTemplateEngine():
         TemplateName = os.path.abspath(TemplateName);
         FolderPath = os.path.dirname(TemplateName);
 
-        template_lookups = defaultdict(set);
+        self.template_lookups = defaultdict(set);
         # Parsing entry point 
         MapDict = self.__ParseContent(FolderPath, TemplateName);
         if(DebugTokens): print(json.dumps(MapDict, sort_keys=True, indent=4));
 
         return MapDict;
-        
-# 
-# (see TemplatesSpecification.png & FilledFile.png) for the usage guidance
-#
-# Visit @Palani-SN(github profile) or send messages to
-# psn396@gmail.com.
-#
+    
+    # 
+    # (see TemplatesSpecification.png & FilledFile.png) for the usage guidance
+    #
+    # Visit @Palani-SN(github profile) or send messages to
+    # psn396@gmail.com.
+    #
