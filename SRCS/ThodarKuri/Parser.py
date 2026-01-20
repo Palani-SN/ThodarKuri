@@ -1,6 +1,7 @@
 import re
 import os
 import json
+from collections import defaultdict
 from .Grammer.SyntaxParser import ThodarkuriParser
 
 # class : TemplateEngine(for PARSING)
@@ -36,7 +37,7 @@ class ParserTemplateEngine():
     #   arg2 - node [ the node which has to be added to the MapDict ]
     # Returns : 
     #   MapDict - the result as a Dict [ helper dict with elements equivalent to the node provided ]
-    def __ParseNode(self, MapDict, node):
+    def __ParseNode(self, RootPath, MapDict, node):
 
         # using Parser as interpreter for node
         RetVal = ThodarkuriParser(node)
@@ -44,7 +45,12 @@ class ParserTemplateEngine():
         # processing node catogorised as type List
         if(str(type(RetVal)) == "<class 'list'>"):
             for x,y in RetVal[0].items():
-                MapDict[x]=[self.__ParseContent(y)];
+                RelPath = os.path.join(RootPath, y)
+                TemplateName = os.path.abspath(RelPath);
+                FolderPath = os.path.dirname(TemplateName);
+                if RootPath == FolderPath:
+                    self.template_lookups[RootPath].add(TemplateName)
+                MapDict[x]=[self.__ParseContent(FolderPath ,TemplateName)];
                     
         # processing node catogorised as type dict 
         if(str(type(RetVal)) == "<class 'dict'>"):
@@ -52,7 +58,12 @@ class ParserTemplateEngine():
                 MapDict[RetVal['VAR']] = None;
             else:
                 for x,y in RetVal.items():
-                    MapDict[x]=self.__ParseContent(y);
+                    RelPath = os.path.join(RootPath, y)
+                    TemplateName = os.path.abspath(RelPath);
+                    FolderPath = os.path.dirname(TemplateName);
+                    if RootPath == FolderPath:
+                        self.template_lookups[RootPath].add(TemplateName)
+                    MapDict[x]=self.__ParseContent(FolderPath ,TemplateName);
                     
         return MapDict;
 
@@ -62,10 +73,18 @@ class ParserTemplateEngine():
     #   arg1 - TemplateName [ filename of the content to be replaced ]
     # Returns : 
     #   MapDict - the result as a Dict [ helper dict with elements equivalent to the nodes present in the content of the filename ]
-    def __ParseContent(self, TemplateName):
+    def __ParseContent(self, FolderPath, TemplateName):
         
+        if not os.path.commonpath([FolderPath, TemplateName]) == FolderPath:
+            raise Exception(f"{TemplateName} should always be within {FolderPath}")
+        elif FolderPath == os.path.dirname(TemplateName):
+            if FolderPath not in self.template_lookups.keys():
+                self.template_lookups[FolderPath] = {}
+            elif FolderPath in self.template_lookups.keys() and TemplateName in self.template_lookups[FolderPath]:
+                raise Exception(f"Circular invocation {self.template_lookups[FolderPath]} Not Supported for {TemplateName} within {FolderPath}")
+
         # reading content from filename
-        template = open(os.path.join(self.__FolderPath, TemplateName), 'r');
+        template = open(os.path.join(FolderPath, TemplateName), 'r');
         self.__content = template.read();
         template.close();
 
@@ -75,7 +94,7 @@ class ParserTemplateEngine():
         for x in func_calls:
             InpNode = x[self.__LeadTrailSpecs[0][1]:self.__LeadTrailSpecs[1][1]].strip();
             if(not(InpNode.startswith('#'))):
-                MapDict = self.__ParseNode(MapDict, InpNode);
+                MapDict = self.__ParseNode(FolderPath, MapDict, InpNode);
             
         return MapDict;
 
@@ -90,10 +109,11 @@ class ParserTemplateEngine():
     def ParseEntryPoint(self, TemplateName, DebugTokens = False):
 
         TemplateName = os.path.abspath(TemplateName);
-        self.__FolderPath = os.path.dirname(TemplateName);
+        FolderPath = os.path.dirname(TemplateName);
 
+        template_lookups = defaultdict(set);
         # Parsing entry point 
-        MapDict = self.__ParseContent(TemplateName);
+        MapDict = self.__ParseContent(FolderPath, TemplateName);
         if(DebugTokens): print(json.dumps(MapDict, sort_keys=True, indent=4));
 
         return MapDict;

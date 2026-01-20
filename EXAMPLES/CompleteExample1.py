@@ -11,8 +11,8 @@ try:
 	r = requests.get(server+ext, headers={ "Content-Type" : "application/json"})
 	 
 	if not r.ok:
-	  r.raise_for_status()
-	  sys.exit()
+		r.raise_for_status()
+		sys.exit()
 	 
 	PlotDetails = r.json()
 	OutputFile = open('ref_files/PlotDetails.json', "w");

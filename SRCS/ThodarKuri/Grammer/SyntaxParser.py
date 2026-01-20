@@ -7,10 +7,12 @@ from lark import Lark, Transformer, v_args
 # Command 2 : adds the key *Plot* to the current dict with value **as dict** of file *template_plot.html*
 
 #       R[Plot] => template_plot.html
+#       R[Plot] => templates/template_plot.html
  
 # Command 3 : adds the key *Bar* to the current dict with value **as list of dict** of file *template_bar.html*
 
 #       ( R[Bar] => template_bar.html )*
+#       ( R[Bar] => templates/template_bar.html )*
  
 
 TK_Grammer = """
@@ -20,12 +22,17 @@ TK_Grammer = """
 
         ?listvar: "(" dictvar ")*" -> getdictvaraslist
         
-        ?dictvar: "R["VAR"] => "FILE -> getvarasdict
+        ?dictvar: "R["VAR"] => "filepath -> getvarasdict
         
         ?var: "R["VAR"]" -> getvar
 
-        VAR: /[a-zA-Z_]\\w*/
-        FILE: /[a-zA-Z_]\\w*.[a-zA-Z_]\\w*/
+        VAR: /[a-zA-Z_][a-zA-Z0-9_]*/
+        filepath: (PATH_PART SEPERATOR)* PATH_PART DOT EXTENSION
+
+        PATH_PART: /[a-zA-Z0-9_-]*/
+        SEPERATOR: /[\\/\\\\]/
+        DOT: "."
+        EXTENSION: /[a-zA-Z0-9]+/
 
         %import common.WS_INLINE
         %ignore WS_INLINE 
@@ -47,9 +54,21 @@ class TK_Parser(Transformer):
 
     # Gets the variable name and the filename of the command of type 2
     # " R[Var_new_3] => files1.html " returns a dict { 'Var_new_3' : 'files1.html' }
+    # " R[Var_new_3] => templates/files1.html "  returns a dict { 'Var_new_3' : 'templates/files1.html' }
     def getvarasdict(self, var, file):
-
-        Dict = { var.value: file.value }
+        # Reconstruct the full file path from the parsed tree
+        # files is a Tree object with children [PATH_PART, SEPERATOR, PATH_PART, '.', EXTENSION, ...]
+        if hasattr(file, 'children'):
+            parts = []
+            for child in file.children:
+                if hasattr(child, 'value'):
+                    parts.append(child.value)
+                else:
+                    parts.append(str(child))
+            filepath = ''.join(parts)
+        else:
+            filepath = str(file)
+        Dict = { var.value: filepath }
         return Dict
 
     # Gets the variable name and the filename of the command of type 3
