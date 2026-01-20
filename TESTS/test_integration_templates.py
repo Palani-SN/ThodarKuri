@@ -6,6 +6,7 @@ from ThodarKuri.Filler import FillerTemplateEngine
 def test_parse_and_fill_templates(tmp_path):
     # point to the templates we added under TESTS/templates
     index_path = os.path.join('templates', 'index.html')
+    output_path = os.path.join('templates', 'output.html')
 
     # parse the skeleton using the real SyntaxParser
     parser = ParserTemplateEngine()
@@ -30,7 +31,7 @@ def test_parse_and_fill_templates(tmp_path):
 
     # fill the templates
     filler = FillerTemplateEngine()
-    out = filler.FillEntryPoint(mapdict, index_path)
+    out = filler.FillEntryPoint(mapdict, index_path, output_path)
 
     # basic assertions
     assert 'My Site Title' in out
