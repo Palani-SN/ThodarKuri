@@ -1,6 +1,7 @@
 import re
 import os
 import json
+from collections import defaultdict
 from .Grammer.SyntaxParser import ThodarkuriParser
 
 # class : TemplateEngine(for PARSING)
@@ -36,7 +37,7 @@ class ParserTemplateEngine():
     #   arg2 - node [ the node which has to be added to the MapDict ]
     # Returns : 
     #   MapDict - the result as a Dict [ helper dict with elements equivalent to the node provided ]
-    def __ParseNode(self, MapDict, node):
+    def __ParseNode(self, RootPath, MapDict, node):
 
         # using Parser as interpreter for node
         RetVal = ThodarkuriParser(node)
@@ -44,7 +45,11 @@ class ParserTemplateEngine():
         # processing node catogorised as type List
         if(str(type(RetVal)) == "<class 'list'>"):
             for x,y in RetVal[0].items():
-                MapDict[x]=[self.__ParseContent(y)];
+                RelPath = os.path.join(RootPath, y)
+                TemplateName = os.path.abspath(RelPath);
+                FolderPath = os.path.dirname(TemplateName);
+                # Do not mark the template here; __ParseContent will manage the recursion guard
+                MapDict[x]=[self.__ParseContent(FolderPath ,TemplateName)];
                     
         # processing node catogorised as type dict 
         if(str(type(RetVal)) == "<class 'dict'>"):
@@ -52,7 +57,11 @@ class ParserTemplateEngine():
                 MapDict[RetVal['VAR']] = None;
             else:
                 for x,y in RetVal.items():
-                    MapDict[x]=self.__ParseContent(y);
+                    RelPath = os.path.join(RootPath, y)
+                    TemplateName = os.path.abspath(RelPath);
+                    FolderPath = os.path.dirname(TemplateName);
+                    # Do not mark the template here; __ParseContent will manage the recursion guard
+                    MapDict[x]=self.__ParseContent(FolderPath ,TemplateName);
                     
         return MapDict;
 
@@ -62,22 +71,41 @@ class ParserTemplateEngine():
     #   arg1 - TemplateName [ filename of the content to be replaced ]
     # Returns : 
     #   MapDict - the result as a Dict [ helper dict with elements equivalent to the nodes present in the content of the filename ]
-    def __ParseContent(self, TemplateName):
+    def __ParseContent(self, FolderPath, TemplateName):
         
-        # reading content from filename
-        template = open(os.path.join(self.__FolderPath, TemplateName), 'r');
-        self.__content = template.read();
-        template.close();
+        if not os.path.commonpath([FolderPath, TemplateName]) == FolderPath:
+            raise Exception(f"{TemplateName} should always be within {FolderPath}")
 
-        # generating MapDict with respect to all nodes present in the content 
-        MapDict = {};
-        func_calls = [self.__content[m.start(0):m.end(0)] for m in re.finditer(self.__pattern, self.__content)];
-        for x in func_calls:
-            InpNode = x[self.__LeadTrailSpecs[0][1]:self.__LeadTrailSpecs[1][1]].strip();
-            if(not(InpNode.startswith('#'))):
-                MapDict = self.__ParseNode(MapDict, InpNode);
-            
-        return MapDict;
+        # ensure folder entry exists
+        if FolderPath not in self.template_lookups:
+            self.template_lookups[FolderPath] = set()
+
+        # if already visiting this template, return empty map to avoid infinite recursion
+        if TemplateName in self.template_lookups[FolderPath]:
+            return {}
+
+        # mark as visiting
+        self.template_lookups[FolderPath].add(TemplateName)
+        try:
+            # reading content from filename
+            template = open(TemplateName, 'r');
+            self.__content = template.read();
+            template.close();
+
+            # generating MapDict with respect to all nodes present in the content 
+            MapDict = {};
+            func_calls = [self.__content[m.start(0):m.end(0)] for m in re.finditer(self.__pattern, self.__content)];
+            for x in func_calls:
+                InpNode = x[self.__LeadTrailSpecs[0][1]:self.__LeadTrailSpecs[1][1]].strip();
+                if(not(InpNode.startswith('#'))):
+                    MapDict = self.__ParseNode(FolderPath, MapDict, InpNode);
+                
+            return MapDict;
+        finally:
+            # unmark visiting
+            self.template_lookups[FolderPath].remove(TemplateName)
+            if not self.template_lookups[FolderPath]:
+                del self.template_lookups[FolderPath]
 
     # method : ParseEntryPoint
     # Gets the template path to be edited.
@@ -90,17 +118,18 @@ class ParserTemplateEngine():
     def ParseEntryPoint(self, TemplateName, DebugTokens = False):
 
         TemplateName = os.path.abspath(TemplateName);
-        self.__FolderPath = os.path.dirname(TemplateName);
+        FolderPath = os.path.dirname(TemplateName);
 
+        self.template_lookups = defaultdict(set);
         # Parsing entry point 
-        MapDict = self.__ParseContent(TemplateName);
+        MapDict = self.__ParseContent(FolderPath, TemplateName);
         if(DebugTokens): print(json.dumps(MapDict, sort_keys=True, indent=4));
 
         return MapDict;
-        
-# 
-# (see TemplatesSpecification.png & FilledFile.png) for the usage guidance
-#
-# Visit @Palani-SN(github profile) or send messages to
-# psn396@gmail.com.
-#
+    
+    # 
+    # (see TemplatesSpecification.png & FilledFile.png) for the usage guidance
+    #
+    # Visit @Palani-SN(github profile) or send messages to
+    # psn396@gmail.com.
+    #

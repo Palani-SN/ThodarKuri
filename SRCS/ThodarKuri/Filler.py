@@ -1,6 +1,7 @@
 import re
 import os
 import json
+from collections import defaultdict
 from .Grammer.SyntaxParser import ThodarkuriParser
 
 # class : TemplateEngine(for FILLING)
@@ -37,7 +38,7 @@ class FillerTemplateEngine():
     #   arg3 - node [ the node which has to be replaced in the content ]
     # Returns : 
     #   content - the result as a string [ node in Content replaced with mapdict element ]
-    def __FillNode(self, content, MapDict, node):
+    def __FillNode(self, content, MapDict, node, RootPath):
 
         InpNode = node[self.__LeadTrailSpecs[0][1]:self.__LeadTrailSpecs[1][1]].strip();
 
@@ -47,7 +48,12 @@ class FillerTemplateEngine():
         # processing node catogorised as type List
         if(str(type(RetVal)) == "<class 'list'>"):
             for x,y in RetVal[0].items():
-                content = content.replace(node, ''.join([ self.__FillContent(y, each) for each in MapDict[x] ]) )
+                # resolve included template absolute path and folder
+                RelPath = os.path.join(RootPath, y)
+                TemplateName = os.path.abspath(RelPath)
+                FolderPath = os.path.dirname(TemplateName)
+                BaseName = os.path.basename(TemplateName)
+                content = content.replace(node, ''.join([ self.__FillContent(FolderPath, BaseName, each) for each in MapDict[x] ]) )
 
         # processing node catogorised as type dict     
         if(str(type(RetVal)) == "<class 'dict'>"):
@@ -55,34 +61,56 @@ class FillerTemplateEngine():
                 content = content.replace(node, str(MapDict[RetVal['VAR']]))
             else:
                 for x,y in RetVal.items():
-                    content = content.replace(node, self.__FillContent(y, MapDict[x]))
+                    RelPath = os.path.join(RootPath, y)
+                    TemplateName = os.path.abspath(RelPath)
+                    FolderPath = os.path.dirname(TemplateName)
+                    BaseName = os.path.basename(TemplateName)
+                    content = content.replace(node, self.__FillContent(FolderPath, BaseName, MapDict[x]))
 
         return content;
     
     # method : __FillContent
     # Internal function process all the nodes of the content and returns the content with each nodes replaced with the actual content.
     # Parameters : 
-    #   arg1 - TemplateName [ filename of the content to be replaced ]
-    #   arg2 - MapDict [ helper dict for replacing the nodes in the content of the filename ]
+    #   arg1 - FolderPath [ folder path where template resides ]
+    #   arg2 - TemplateName [ filename of the content to be replaced ]
+    #   arg3 - MapDict [ helper dict for replacing the nodes in the content of the filename ]
     # Returns : 
     #   content - the result as a string [ all nodes in Content replaced with mapdict elements ]
-    def __FillContent(self, TemplateName, MapDict):
+    def __FillContent(self, FolderPath, TemplateName, MapDict):
 
-        # reading content from filename
-        template = open(os.path.join(self.__FolderPath, TemplateName), 'r');
-        content = template.read();
-        template.close();
+        # ensure folder entry exists
+        if FolderPath not in getattr(self, 'template_lookups', {}):
+            # when FillEntryPoint initializes, it will set template_lookups; guard if not present
+            self.template_lookups = getattr(self, 'template_lookups', defaultdict(set))
 
-        # replacing all nodes of the content 
-        func_calls = [content[m.start(0):m.end(0)] for m in re.finditer(self.__pattern, content)];
-        for x in func_calls:
-            InpNode = x[self.__LeadTrailSpecs[0][1]:self.__LeadTrailSpecs[1][1]].strip();
-            if(InpNode.startswith('#')):
-                content = content.replace(x, '');
-            else:
-                content = self.__FillNode(content, MapDict, x);
-            
-        return content;
+        # if already visiting this template, return empty string to avoid infinite recursion
+        if TemplateName in self.template_lookups[FolderPath]:
+            return ''
+
+        # mark as visiting
+        self.template_lookups[FolderPath].add(TemplateName)
+        try:
+            # reading content from filename
+            template = open(os.path.join(FolderPath, TemplateName), 'r');
+            content = template.read();
+            template.close();
+
+            # replacing all nodes of the content 
+            func_calls = [content[m.start(0):m.end(0)] for m in re.finditer(self.__pattern, content)];
+            for x in func_calls:
+                InpNode = x[self.__LeadTrailSpecs[0][1]:self.__LeadTrailSpecs[1][1]].strip();
+                if(InpNode.startswith('#')):
+                    content = content.replace(x, '');
+                else:
+                    content = self.__FillNode(content, MapDict, x, FolderPath);
+                
+            return content;
+        finally:
+            # unmark visiting
+            self.template_lookups[FolderPath].remove(TemplateName)
+            if not self.template_lookups[FolderPath]:
+                del self.template_lookups[FolderPath]
         
     # method : FillEntryPoint
     # Gets the Edited Dictionary Skeleton of the template and the template path to be used.
@@ -97,10 +125,15 @@ class FillerTemplateEngine():
     #   MappedStr - the result as a string [ filled templates with mapdict ]
     def FillEntryPoint(self, MapDict, TemplateName, FileName = None, DebugTokens = False):
 
-        self.__FolderPath = os.path.dirname(os.path.abspath(TemplateName));
+        abs_template = os.path.abspath(TemplateName)
+        FolderPath = os.path.dirname(abs_template);
+        base = os.path.basename(abs_template)
+
+        # initialize recursion guard
+        self.template_lookups = defaultdict(set)
 
         # Filling entry point 
-        MappedStr = self.__FillContent(os.path.basename(TemplateName), MapDict);
+        MappedStr = self.__FillContent(FolderPath, base, MapDict);
         if(DebugTokens): print(MappedStr);
 
         # Writing the final content as file if FileName is provided
