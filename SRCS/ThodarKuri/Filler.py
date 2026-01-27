@@ -92,7 +92,7 @@ class FillerTemplateEngine():
         self.template_lookups[FolderPath].add(TemplateName)
         try:
             # reading content from filename
-            template = open(os.path.join(FolderPath, TemplateName), 'r');
+            template = open(os.path.join(FolderPath, TemplateName), 'r', encoding='utf-8');
             content = template.read();
             template.close();
 
@@ -138,7 +138,7 @@ class FillerTemplateEngine():
 
         # Writing the final content as file if FileName is provided
         if(FileName != None):
-            OutputFile = open(FileName, "w");
+            OutputFile = open(FileName, "w", encoding='utf-8');
             OutputFile.write(MappedStr)
             OutputFile.close();
         
