@@ -88,7 +88,7 @@ class ParserTemplateEngine():
         self.template_lookups[FolderPath].add(TemplateName)
         try:
             # reading content from filename
-            template = open(TemplateName, 'r');
+            template = open(TemplateName, 'r', encoding='utf-8');
             self.__content = template.read();
             template.close();
 
